@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 ENV JAVA_OPTS=" -Xmx7G "
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-ENV PATH=~/bin:/usr/local/bin:/home/cirrust/bin:$PATH
+ENV PATH=~/bin:/usr/local/bin:/home/cirrus/bin:$PATH
 
 # Install all required packages
 RUN apt-get update -q -y \
