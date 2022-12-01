@@ -1,19 +1,9 @@
 FROM ubuntu:focal
 
-LABEL maintainer="phoenix-1708 <harikumar1708@gmail.com>"
-
-
-ENV DEBIAN_FRONTEND=noninteractive
-ENV LANG=C.UTF-8
-ENV JAVA_OPTS=" -Xmx7G "
-ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-
 RUN set -x \
  && sudo apt-get update \
  && sudo apt-get -y dist-upgrade \
  && sudo apt-get -y install \
-    ccache \
-    wget \
     bison \
     build-essential \
     curl \
@@ -38,6 +28,8 @@ RUN set -x \
     libfreetype6 \
     brotli \
     openjdk-11-jdk \
+    ccache \
+    wget \
 # Get the latest version of repo
  && curl https://storage.googleapis.com/git-repo-downloads/repo >/tmp/repo \
  && sudo mkdir /opt/aosp \
