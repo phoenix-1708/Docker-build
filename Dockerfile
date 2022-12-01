@@ -31,6 +31,7 @@ RUN set -x \
     openjdk-11-jdk \
     ccache \
     wget \
+    pigz \
 # Get the latest version of repo
  && curl https://storage.googleapis.com/git-repo-downloads/repo >/tmp/repo \
  && sudo mkdir /opt/aosp \
