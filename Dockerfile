@@ -1,65 +1,54 @@
-FROM ubuntu:focal
+# Copyright (c) 2016-022 Crave.io Inc. All rights reserved
+FROM accupara/ubuntu:18.04
 
-LATEST_MAKE_VERSION="4.3"
-UBUNTU_16_PACKAGES="libesd0-dev"
-UBUNTU_20_PACKAGES="libncurses5 curl python-is-python3"
-DEBIAN_10_PACKAGES="libncurses5"
-DEBIAN_11_PACKAGES="libncurses5"
-PACKAGES=""
-
-sudo apt install software-properties-common -y
-sudo apt update
-
-# Install lsb-core packages
-sudo apt install lsb-core -y
-
-LSB_RELEASE="$(lsb_release -d | cut -d ':' -f 2 | sed -e 's/^[[:space:]]*//')"
-
-if [[ ${LSB_RELEASE} =~ "Mint 18" || ${LSB_RELEASE} =~ "Ubuntu 16" ]]; then
-    PACKAGES="${UBUNTU_16_PACKAGES}"
-elif [[ ${LSB_RELEASE} =~ "Ubuntu 20" || ${LSB_RELEASE} =~ "Ubuntu 21" || ${LSB_RELEASE} =~ "Ubuntu 22" ]]; then
-    PACKAGES="${UBUNTU_20_PACKAGES}"
-elif [[ ${LSB_RELEASE} =~ "Debian GNU/Linux 10" ]]; then
-    PACKAGES="${DEBIAN_10_PACKAGES}"
-elif [[ ${LSB_RELEASE} =~ "Debian GNU/Linux 11" ]]; then
-    PACKAGES="${DEBIAN_11_PACKAGES}"
-fi
-
-sudo DEBIAN_FRONTEND=noninteractive \
-    apt install \
-    adb autoconf automake axel bc bison build-essential \
-    ccache clang cmake curl expat fastboot flex g++ \
-    g++-multilib gawk gcc gcc-multilib git gnupg gperf \
-    htop imagemagick lib32ncurses5-dev lib32z1-dev libtinfo5 libc6-dev libcap-dev \
-    libexpat1-dev libgmp-dev '^liblz4-.*' '^liblzma.*' libmpc-dev libmpfr-dev libncurses5-dev \
-    libsdl1.2-dev libssl-dev libtool libxml2 libxml2-utils '^lzma.*' lzop \
-    maven ncftp ncurses-dev patch patchelf pkg-config pngcrush \
-    pngquant python2.7 python-all-dev re2c schedtool squashfs-tools subversion \
-    texinfo unzip w3m xsltproc zip zlib1g-dev lzip \
-    libxml-simple-perl libswitch-perl apt-utils \
-    ${PACKAGES} -y
-
-echo -e "Installing GitHub CLI"
-curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-sudo apt update
-sudo apt install -y gh
-
-echo -e "Setting up udev rules for adb!"
-sudo curl --create-dirs -L -o /etc/udev/rules.d/51-android.rules -O -L https://raw.githubusercontent.com/M0Rf30/android-udev-rules/master/51-android.rules
-sudo chmod 644 /etc/udev/rules.d/51-android.rules
-sudo chown root /etc/udev/rules.d/51-android.rules
-sudo systemctl restart udev
-
-if [[ "$(command -v make)" ]]; then
-    makeversion="$(make -v | head -1 | awk '{print $3}')"
-    if [[ ${makeversion} != "${LATEST_MAKE_VERSION}" ]]; then
-        echo "Installing make ${LATEST_MAKE_VERSION} instead of ${makeversion}"
-        bash "$(dirname "$0")"/make.sh "${LATEST_MAKE_VERSION}"
-    fi
-fi
-
-echo "Installing repo"
-sudo curl --create-dirs -L -o /usr/local/bin/repo -O -L https://storage.googleapis.com/git-repo-downloads/repo
-sudo chmod a+rx /usr/local/bin/repo
+RUN set -x \
+ && sudo apt-get update \
+ && sudo apt-get -y dist-upgrade \
+ && sudo apt-get -y install \
+    bison \
+    build-essential \
+    curl \
+    flex \
+    g++-multilib \
+    gcc-multilib \
+    gnupg \
+    gperf \
+    lib32ncurses5-dev \
+    libncurses5-dev \
+    libncurses5 \
+    lib32z-dev \
+    libc6-dev-i386 \
+    libgl1-mesa-dev \
+    libx11-dev \
+    libxml2-utils \
+    unzip \
+    x11proto-core-dev \
+    xsltproc \
+    zip \
+    zlib1g-dev \
+    libfreetype6 \
+    brotli \
+    openjdk-11-jdk \
+    ccache \
+    wget \
+# Get the latest version of repo
+ && curl https://storage.googleapis.com/git-repo-downloads/repo >/tmp/repo \
+ && sudo mkdir /opt/aosp \
+ && sudo chown admin:admin /opt/aosp \
+ && sudo mv /tmp/repo /usr/bin/repo \
+ && sudo chmod +x /usr/bin/repo \
+# Remove python 2 completely
+ && sudo apt-get purge -y python python2.7 \
+ && sudo apt-get -y autoremove \
+# Use python3 as the default python
+ && sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 1 \
+# Make sure that the default version of python is 3
+ && if [ $(python --version | grep -c 'Python 3') -eq "0" ] ; then exit 1 ; fi \
+# This is required for AOSP compilations
+ && git config --global user.name phoenix-1708
+ && git config --global user.email harikumar1708@gmail.com
+# Please stop asking what colors I want
+ && git config --global color.ui false \
+# Final cleanups
+ && sudo apt-get clean \
+ && sudo rm -f /var/lib/apt/lists/*_dists_*
