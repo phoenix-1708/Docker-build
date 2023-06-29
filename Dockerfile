@@ -45,11 +45,6 @@ RUN set -x \
  && sudo update-alternatives --install /usr/bin/python python /usr/bin/python3 1 \
 # Make sure that the default version of python is 3
  && if [ $(python --version | grep -c 'Python 3') -eq "0" ] ; then exit 1 ; fi \
-# This is required for AOSP compilations
- && git config --global user.name phoenix-1708 \
- && git config --global user.email harikumar1708@gmail.com \
-# Please stop asking what colors I want
- && git config --global color.ui false \
 # Final cleanups
  && sudo apt-get clean \
  && sudo rm -f /var/lib/apt/lists/*_dists_*
